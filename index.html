@@ -1,0 +1,1707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Interactive tutorial on Principal Component Analysis (PCA) and Singular Value Decomposition (SVD) for high school students">
+    <meta name="keywords" content="PCA, SVD, linear algebra, machine learning, interactive tutorial, python">
+    <title>Understanding PCA and SVD | Interactive Tutorial</title>
+
+    <!-- Preconnect to CDNs for faster loading -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
+
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+
+    <!-- Prism.js for syntax highlighting -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+
+    <style>
+        /* ===== CSS Variables ===== */
+        :root {
+            /* Colors */
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-light: #60a5fa;
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --border: #475569;
+
+            /* Spacing */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+
+            /* Typography */
+            --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+            --font-mono: 'Monaco', 'Menlo', 'Courier New', monospace;
+
+            /* Sizing */
+            --max-width: 1200px;
+            --border-radius: 8px;
+            --border-radius-sm: 4px;
+        }
+
+        /* ===== Base Styles ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            padding: var(--spacing-sm);
+        }
+
+        main {
+            max-width: var(--max-width);
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: var(--spacing-md);
+            background: linear-gradient(135deg, var(--accent-light), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin: var(--spacing-xl) 0 var(--spacing-md) 0;
+            color: var(--accent-light);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: var(--spacing-xs);
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            margin: var(--spacing-lg) 0 var(--spacing-sm) 0;
+            color: var(--text-primary);
+        }
+
+        p {
+            margin-bottom: var(--spacing-md);
+            color: var(--text-secondary);
+        }
+
+        a {
+            color: var(--accent-light);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        a:hover {
+            color: var(--accent);
+            text-decoration: underline;
+        }
+
+        strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        em {
+            color: var(--accent-light);
+            font-style: italic;
+        }
+
+        ul, ol {
+            margin: var(--spacing-md) 0 var(--spacing-md) var(--spacing-lg);
+            color: var(--text-secondary);
+        }
+
+        li {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        /* ===== Header ===== */
+        header {
+            text-align: center;
+            padding: var(--spacing-lg) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        header p {
+            font-size: 1.125rem;
+            color: var(--text-muted);
+        }
+
+        #pyodide-status {
+            display: inline-block;
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            font-size: 0.875rem;
+            color: var(--warning);
+            border: 1px solid var(--border);
+        }
+
+        #pyodide-status.ready {
+            color: var(--success);
+            border-color: var(--success);
+        }
+
+        /* ===== Sections ===== */
+        .content-section {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--border);
+        }
+
+        .intro-box {
+            background: var(--bg-tertiary);
+            border-left: 4px solid var(--accent);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            margin: var(--spacing-md) 0;
+        }
+
+        .intro-box p {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .intro-box p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* ===== Code Blocks ===== */
+        .code-block-container {
+            background: #1e1e1e;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            margin: var(--spacing-md) 0;
+            border: 1px solid var(--border);
+        }
+
+        .code-editor {
+            padding: var(--spacing-md);
+            background: #1e1e1e;
+        }
+
+        .code-editor pre {
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+
+        .code-editor code {
+            display: block;
+            min-height: 80px;
+            outline: none;
+            white-space: pre;
+            color: #d4d4d4;
+            tab-size: 4;
+        }
+
+        .code-editor code:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .code-controls {
+            display: flex;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm);
+            background: #2d2d2d;
+            border-top: 1px solid #3d3d3d;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            font-family: var(--font-body);
+            transition: background 0.2s, transform 0.1s;
+            min-height: 36px;
+        }
+
+        button:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        button:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        button.secondary:hover:not(:disabled) {
+            background: var(--border);
+        }
+
+        .code-output {
+            padding: var(--spacing-md);
+            min-height: 60px;
+            background: #ffffff;
+            color: #1e1e1e;
+            border-top: 1px solid #3d3d3d;
+        }
+
+        .code-output img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .code-output.empty {
+            background: var(--bg-tertiary);
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-style: italic;
+        }
+
+        /* ===== Status Messages ===== */
+        .status-message {
+            padding: var(--spacing-sm);
+            border-radius: var(--border-radius-sm);
+            margin: var(--spacing-sm) 0;
+            font-size: 0.875rem;
+        }
+
+        .status-loading {
+            color: var(--accent);
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid var(--accent);
+        }
+
+        .status-success {
+            color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+        }
+
+        .status-error {
+            color: var(--error);
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--error);
+            white-space: pre-wrap;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+        }
+
+        /* ===== Animation Controls ===== */
+        .animation-container {
+            background: var(--bg-tertiary);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            margin: var(--spacing-md) 0;
+            border: 1px solid var(--border);
+        }
+
+        .animation-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+
+        .step-indicator {
+            font-weight: 500;
+            color: var(--text-primary);
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius-sm);
+        }
+
+        .animation-display {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            min-height: 300px;
+        }
+
+        .animation-display img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .step-description {
+            margin-top: var(--spacing-md);
+            padding: var(--spacing-md);
+            background: var(--bg-secondary);
+            border-left: 3px solid var(--accent);
+            border-radius: var(--border-radius-sm);
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .animation-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* ===== Dataset Selector ===== */
+        .dataset-selector {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            margin: var(--spacing-md) 0;
+            flex-wrap: wrap;
+        }
+
+        .dataset-selector label {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .dataset-selector select {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius-sm);
+            font-size: 1rem;
+            font-family: var(--font-body);
+            cursor: pointer;
+            min-height: 36px;
+        }
+
+        .dataset-selector select:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* ===== Responsive Design ===== */
+        @media (max-width: 767px) {
+            body {
+                font-size: 0.9rem;
+            }
+
+            h1 {
+                font-size: 1.75rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+
+            h3 {
+                font-size: 1.25rem;
+            }
+
+            .code-editor code {
+                font-size: 0.75rem;
+            }
+
+            .content-section {
+                padding: var(--spacing-md);
+            }
+
+            button {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: var(--spacing-md);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            body {
+                padding: var(--spacing-lg);
+                font-size: 1.0625rem;
+            }
+
+            .content-section {
+                padding: var(--spacing-xl);
+            }
+        }
+
+        /* ===== Math Styling ===== */
+        .katex {
+            font-size: 1.1em;
+        }
+
+        .katex-display {
+            margin: var(--spacing-md) 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        /* ===== Loading Spinner ===== */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: var(--spacing-xs);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ===== Utility Classes ===== */
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-lg {
+            margin-top: var(--spacing-lg);
+        }
+
+        .mb-lg {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        /* ===== Slider ===== */
+        .slider-container {
+            margin: var(--spacing-md) 0;
+            padding: var(--spacing-md);
+            background: var(--bg-tertiary);
+            border-radius: var(--border-radius);
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: var(--spacing-sm);
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--bg-secondary);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Understanding High-Dimensional Spaces</h1>
+        <p>An Interactive Introduction to PCA and SVD</p>
+        <div id="pyodide-status">
+            <span class="spinner"></span>
+            <span id="status-text">Initializing Python environment...</span>
+        </div>
+    </header>
+
+    <main>
+        <!-- ===== INTRODUCTION ===== -->
+        <section id="introduction" class="content-section">
+            <h2>What is Dimensionality?</h2>
+            <p>
+                Imagine you're trying to describe your classmates. You might record their height, weight, age, test scores in different subjects,
+                hours of study, hours of sleep, and so on. Each measurement is a <strong>dimension</strong>. If you measure 10 different things
+                about each person, you're working with 10-dimensional data!
+            </p>
+
+            <div class="intro-box">
+                <p><strong>The Challenge:</strong> Humans can't visualize more than 3 dimensions. How do we understand and work with
+                high-dimensional data?</p>
+                <p><strong>The Solution:</strong> Find ways to reduce dimensions while keeping the most important information.
+                This is where <em>Principal Component Analysis (PCA)</em> and <em>Singular Value Decomposition (SVD)</em> come in!</p>
+            </div>
+
+            <p>
+                In this interactive tutorial, you'll learn how these powerful techniques work. You can modify and run Python code
+                right in your browser to see the concepts come to life.
+            </p>
+
+            <h3>Let's Start with a Simple Example</h3>
+            <p>
+                Here's some 2D data we can visualize. Try running this code to see a scatter plot:
+            </p>
+
+            <div class="code-block-container">
+                <div class="code-editor">
+                    <pre><code class="language-python" contenteditable="true" id="code-intro">import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate some correlated 2D data
+np.random.seed(42)
+x = np.random.randn(100)
+y = 2 * x + np.random.randn(100) * 0.5
+
+plt.figure(figsize=(7, 5), dpi=120)
+plt.scatter(x, y, alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+plt.xlabel('Feature 1', fontsize=11)
+plt.ylabel('Feature 2', fontsize=11)
+plt.title('2D Data: Notice the Linear Pattern', fontsize=12, fontweight='bold')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()</code></pre>
+                </div>
+                <div class="code-controls">
+                    <button class="run-code" onclick="runCode('code-intro', 'output-intro')">Run Code</button>
+                    <button class="secondary" onclick="resetCode('code-intro')">Reset</button>
+                </div>
+                <div class="code-output empty" id="output-intro">
+                    Click "Run Code" to execute
+                </div>
+            </div>
+
+            <p>
+                Notice how the data points roughly follow a diagonal line? This tells us that the two features are <em>correlated</em>.
+                In fact, much of the information could be captured with just one dimension along that diagonal direction.
+                That's the key insight behind PCA!
+            </p>
+        </section>
+
+        <!-- ===== PCA: THE INTUITION ===== -->
+        <section id="pca-intuition" class="content-section">
+            <h2>Principal Component Analysis: The Intuition</h2>
+
+            <p>
+                Imagine you're taking a photo of a long stick. If you photograph it from the side (perpendicular to its length),
+                you see its full length. But if you photograph it end-on, it looks like just a dot! The <strong>angle matters</strong>.
+            </p>
+
+            <p>
+                PCA does something similar with data: it finds the "angles" (directions) where your data is spread out the most.
+                These special directions are called <strong>principal components</strong>.
+            </p>
+
+            <div class="intro-box">
+                <p><strong>Main Idea:</strong> Find the directions in your data where points vary the most. Project your data
+                onto these directions to reduce dimensions while preserving as much information as possible.</p>
+            </div>
+
+            <h3>PCA in Action</h3>
+            <p>
+                Let's see PCA find the principal components for our data. The arrows show the directions of maximum variance:
+            </p>
+
+            <div class="code-block-container">
+                <div class="code-editor">
+                    <pre><code class="language-python" contenteditable="true" id="code-pca-visual">import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
+# Generate correlated data
+np.random.seed(42)
+x = np.random.randn(100)
+y = 2 * x + np.random.randn(100) * 0.5
+data = np.column_stack([x, y])
+
+# Perform PCA
+pca = PCA(n_components=2)
+pca.fit(data)
+
+# Visualize
+fig, ax = plt.subplots(figsize=(7, 5), dpi=120)
+ax.scatter(data[:, 0], data[:, 1], alpha=0.6, s=50, c='#3b82f6',
+           edgecolors='white', linewidth=0.5, label='Data points')
+
+# Draw principal components as arrows
+mean = pca.mean_
+colors = ['#ef4444', '#10b981']
+for i, (component, variance) in enumerate(zip(pca.components_, pca.explained_variance_)):
+    direction = component * 3 * np.sqrt(variance)
+    ax.arrow(mean[0], mean[1], direction[0], direction[1],
+             head_width=0.3, head_length=0.3, fc=colors[i], ec=colors[i],
+             linewidth=3, label=f'PC{i+1} ({variance/pca.explained_variance_.sum()*100:.1f}%)')
+
+ax.scatter(mean[0], mean[1], c='yellow', s=200, marker='*',
+           edgecolors='black', linewidth=2, zorder=5, label='Mean')
+ax.set_xlabel('Feature 1', fontsize=11)
+ax.set_ylabel('Feature 2', fontsize=11)
+ax.set_title('Principal Components', fontsize=12, fontweight='bold')
+ax.legend(loc='best', fontsize=9)
+ax.grid(True, alpha=0.3)
+plt.tight_layout()</code></pre>
+                </div>
+                <div class="code-controls">
+                    <button class="run-code" onclick="runCode('code-pca-visual', 'output-pca-visual')">Run Code</button>
+                    <button class="secondary" onclick="resetCode('code-pca-visual')">Reset</button>
+                </div>
+                <div class="code-output empty" id="output-pca-visual">
+                    Click "Run Code" to execute
+                </div>
+            </div>
+
+            <p>
+                The <span style="color: #ef4444;">red arrow (PC1)</span> points in the direction where the data varies most
+                (captures ~84% of variance). The <span style="color: #10b981;">green arrow (PC2)</span> is perpendicular to it
+                and captures the remaining variance (~16%).
+            </p>
+
+            <p>
+                If we wanted to reduce from 2D to 1D, we'd project all points onto the red arrow. We'd lose some information
+                (the green direction), but keep most of it (the red direction).
+            </p>
+        </section>
+
+        <!-- ===== HOW PCA WORKS ===== -->
+        <section id="pca-steps" class="content-section">
+            <h2>How PCA Works: Step by Step</h2>
+
+            <p>
+                Let's break down exactly what PCA does. We'll walk through each step with visualizations.
+            </p>
+
+            <h3>The PCA Algorithm</h3>
+            <ol>
+                <li><strong>Center the data:</strong> Subtract the mean from each feature so the data is centered at the origin</li>
+                <li><strong>Compute the covariance matrix:</strong> This captures how features vary together</li>
+                <li><strong>Find eigenvectors and eigenvalues:</strong> These give us the principal components and their importance</li>
+                <li><strong>Project the data:</strong> Transform data into the new coordinate system defined by principal components</li>
+            </ol>
+
+            <div id="pca-animation" class="animation-container">
+                <div class="animation-controls">
+                    <button onclick="prevStep('pca')">← Previous</button>
+                    <span class="step-indicator">
+                        Step <span id="pca-current-step">1</span> of <span id="pca-total-steps">5</span>
+                    </span>
+                    <button onclick="nextStep('pca')">Next →</button>
+                    <button class="secondary" onclick="generatePCASteps()">Generate Animation</button>
+                </div>
+                <div class="animation-display">
+                    <div class="animation-placeholder" id="pca-animation-display">
+                        Click "Generate Animation" to create step-by-step visualization
+                    </div>
+                    <div class="step-description" id="pca-step-description" style="display: none;"></div>
+                </div>
+            </div>
+
+            <h3>The Mathematics (Light Touch)</h3>
+            <p>
+                For those curious about the math, here are the key equations:
+            </p>
+
+            <p>
+                The <strong>covariance matrix</strong> of centered data \(X\) is:
+                $$\Sigma = \frac{1}{n-1} X^T X$$
+            </p>
+
+            <p>
+                We find the <strong>eigenvectors</strong> \(\mathbf{v}\) and <strong>eigenvalues</strong> \(\lambda\) that satisfy:
+                $$\Sigma \mathbf{v} = \lambda \mathbf{v}$$
+            </p>
+
+            <p>
+                The eigenvectors become our principal components, and eigenvalues tell us how much variance each component captures.
+            </p>
+
+            <h3>Try Different Datasets</h3>
+            <p>
+                See how PCA behaves with different types of data:
+            </p>
+
+            <div class="dataset-selector">
+                <label for="pca-dataset">Choose a dataset:</label>
+                <select id="pca-dataset" onchange="loadPCADataset()">
+                    <option value="linear">Linear Correlation</option>
+                    <option value="circular">Circular Pattern</option>
+                    <option value="diagonal">Diagonal Spread</option>
+                    <option value="random">Random Cloud</option>
+                </select>
+            </div>
+
+            <div class="code-output empty" id="pca-dataset-output" style="background: white;">
+                Select a dataset above to visualize
+            </div>
+        </section>
+
+        <!-- ===== SINGULAR VALUE DECOMPOSITION ===== -->
+        <section id="svd" class="content-section">
+            <h2>Singular Value Decomposition (SVD)</h2>
+
+            <p>
+                Now let's talk about SVD. While PCA is specifically about finding directions of maximum variance,
+                SVD is a more general way to decompose <em>any</em> matrix.
+            </p>
+
+            <div class="intro-box">
+                <p><strong>SVD Idea:</strong> Any matrix \(M\) can be factored into three matrices:</p>
+                <p>$$M = U \Sigma V^T$$</p>
+                <p>where \(U\) and \(V\) are rotation matrices, and \(\Sigma\) is a scaling matrix.</p>
+            </div>
+
+            <p>
+                Think of it like this: any linear transformation can be broken down into:
+            </p>
+            <ol>
+                <li><strong>\(V^T\):</strong> Rotate to align with special directions</li>
+                <li><strong>\(\Sigma\):</strong> Scale along those directions</li>
+                <li><strong>\(U\):</strong> Rotate to the final orientation</li>
+            </ol>
+
+            <h3>SVD in Code</h3>
+            <p>
+                Let's compute SVD and see what we get:
+            </p>
+
+            <div class="code-block-container">
+                <div class="code-editor">
+                    <pre><code class="language-python" contenteditable="true" id="code-svd">import numpy as np
+import matplotlib.pyplot as plt
+
+# Create a simple 2x2 matrix
+M = np.array([[3, 1],
+              [1, 2]])
+
+# Compute SVD
+U, S, Vt = np.linalg.svd(M)
+
+# Visualize the decomposition
+fig, axes = plt.subplots(1, 4, figsize=(12, 3), dpi=120)
+
+# Original matrix
+axes[0].imshow(M, cmap='RdBu_r', vmin=-3, vmax=3)
+axes[0].set_title('M (Original)', fontweight='bold')
+axes[0].set_xticks([0, 1])
+axes[0].set_yticks([0, 1])
+for i in range(2):
+    for j in range(2):
+        axes[0].text(j, i, f'{M[i,j]:.2f}', ha='center', va='center', fontsize=11)
+
+# U matrix
+axes[1].imshow(U, cmap='RdBu_r', vmin=-1, vmax=1)
+axes[1].set_title('U (Rotation)', fontweight='bold')
+axes[1].set_xticks([0, 1])
+axes[1].set_yticks([0, 1])
+for i in range(2):
+    for j in range(2):
+        axes[1].text(j, i, f'{U[i,j]:.2f}', ha='center', va='center', fontsize=10)
+
+# Sigma (as diagonal matrix)
+Sigma = np.diag(S)
+axes[2].imshow(Sigma, cmap='RdBu_r', vmin=0, vmax=4)
+axes[2].set_title('Σ (Scaling)', fontweight='bold')
+axes[2].set_xticks([0, 1])
+axes[2].set_yticks([0, 1])
+for i in range(2):
+    for j in range(2):
+        axes[2].text(j, i, f'{Sigma[i,j]:.2f}', ha='center', va='center', fontsize=11)
+
+# V^T matrix
+axes[3].imshow(Vt, cmap='RdBu_r', vmin=-1, vmax=1)
+axes[3].set_title('V^T (Rotation)', fontweight='bold')
+axes[3].set_xticks([0, 1])
+axes[3].set_yticks([0, 1])
+for i in range(2):
+    for j in range(2):
+        axes[3].text(j, i, f'{Vt[i,j]:.2f}', ha='center', va='center', fontsize=10)
+
+plt.tight_layout()</code></pre>
+                </div>
+                <div class="code-controls">
+                    <button class="run-code" onclick="runCode('code-svd', 'output-svd')">Run Code</button>
+                    <button class="secondary" onclick="resetCode('code-svd')">Reset</button>
+                </div>
+                <div class="code-output empty" id="output-svd">
+                    Click "Run Code" to execute
+                </div>
+            </div>
+
+            <p>
+                The values in \(\Sigma\) (sigma) are called <strong>singular values</strong>. Larger singular values mean
+                those directions are more important!
+            </p>
+        </section>
+
+        <!-- ===== CONNECTING SVD AND PCA ===== -->
+        <section id="connection" class="content-section">
+            <h2>The Connection: SVD and PCA</h2>
+
+            <p>
+                Here's the beautiful insight: <strong>PCA and SVD are deeply connected!</strong>
+            </p>
+
+            <div class="intro-box">
+                <p><strong>Key Connection:</strong> When you perform SVD on centered data matrix \(X\), the right singular
+                vectors (columns of \(V\)) are exactly the principal components from PCA!</p>
+                <p>$$X = U \Sigma V^T$$</p>
+                <p>The singular values in \(\Sigma\) tell you the importance of each principal component.</p>
+            </div>
+
+            <h3>Proof by Code</h3>
+            <p>
+                Let's verify this connection by comparing PCA and SVD on the same dataset:
+            </p>
+
+            <div class="code-block-container">
+                <div class="code-editor">
+                    <pre><code class="language-python" contenteditable="true" id="code-connection">import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
+# Generate data
+np.random.seed(42)
+x = np.random.randn(100)
+y = 2 * x + np.random.randn(100) * 0.5
+data = np.column_stack([x, y])
+
+# Method 1: PCA
+pca = PCA(n_components=2)
+pca.fit(data)
+pca_components = pca.components_
+
+# Method 2: SVD on centered data
+centered_data = data - np.mean(data, axis=0)
+U, S, Vt = np.linalg.svd(centered_data, full_matrices=False)
+svd_components = Vt  # V^T gives us the components
+
+# Compare
+fig, axes = plt.subplots(1, 2, figsize=(12, 5), dpi=120)
+
+# PCA visualization
+axes[0].scatter(data[:, 0], data[:, 1], alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+mean = np.mean(data, axis=0)
+for i, comp in enumerate(pca_components):
+    axes[0].arrow(mean[0], mean[1], comp[0]*2, comp[1]*2,
+                 head_width=0.2, head_length=0.2, fc=f'C{i}', ec=f'C{i}',
+                 linewidth=3, label=f'PCA PC{i+1}')
+axes[0].set_title('PCA Components', fontsize=12, fontweight='bold')
+axes[0].legend()
+axes[0].grid(True, alpha=0.3)
+axes[0].axis('equal')
+
+# SVD visualization
+axes[1].scatter(data[:, 0], data[:, 1], alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+for i, comp in enumerate(svd_components):
+    axes[1].arrow(mean[0], mean[1], comp[0]*2, comp[1]*2,
+                 head_width=0.2, head_length=0.2, fc=f'C{i}', ec=f'C{i}',
+                 linewidth=3, linestyle='--', label=f'SVD V{i+1}')
+axes[1].set_title('SVD Components (from V^T)', fontsize=12, fontweight='bold')
+axes[1].legend()
+axes[1].grid(True, alpha=0.3)
+axes[1].axis('equal')
+
+plt.tight_layout()
+
+print("PCA Components:")
+print(pca_components)
+print("\nSVD Components (V^T):")
+print(svd_components)
+print("\nAre they the same (up to sign)? Check the magnitudes:"
+print(f"Difference in magnitudes: {np.abs(np.abs(pca_components) - np.abs(svd_components)).max():.10f}")</code></pre>
+                </div>
+                <div class="code-controls">
+                    <button class="run-code" onclick="runCode('code-connection', 'output-connection')">Run Code</button>
+                    <button class="secondary" onclick="resetCode('code-connection')">Reset</button>
+                </div>
+                <div class="code-output empty" id="output-connection">
+                    Click "Run Code" to execute
+                </div>
+            </div>
+
+            <p>
+                The arrows should point in the same directions! (They might point in opposite directions due to sign ambiguity,
+                but that's okay—the direction is what matters.)
+            </p>
+
+            <p>
+                This means that under the hood, many PCA implementations actually use SVD because it's numerically stable and efficient!
+            </p>
+        </section>
+
+        <!-- ===== APPLICATIONS ===== -->
+        <section id="applications" class="content-section">
+            <h2>Real-World Applications</h2>
+
+            <p>
+                PCA and SVD aren't just mathematical curiosities—they're used everywhere! Let's explore two common applications.
+            </p>
+
+            <h3>Application 1: Image Compression</h3>
+            <p>
+                We can use SVD to compress images by keeping only the most important singular values.
+            </p>
+
+            <div class="slider-container">
+                <div class="slider-label">
+                    <span>Number of components:</span>
+                    <span id="compression-value">10</span>
+                </div>
+                <input type="range" min="1" max="30" value="10" class="slider" id="compression-slider"
+                       oninput="updateCompressionValue(this.value)">
+            </div>
+
+            <button onclick="runImageCompression()" style="margin-bottom: 1rem;">Compress Image</button>
+
+            <div class="code-output" id="output-compression" style="background: white; min-height: 300px;">
+                Adjust the slider and click "Compress Image" to see SVD compression in action
+            </div>
+
+            <h3>Application 2: Dimensionality Reduction for Visualization</h3>
+            <p>
+                PCA can reduce high-dimensional data to 2D or 3D so we can visualize it. Let's try with a 4D dataset:
+            </p>
+
+            <div class="code-block-container">
+                <div class="code-editor">
+                    <pre><code class="language-python" contenteditable="true" id="code-visualization">import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
+# Generate 4D data with 3 clusters (like iris flowers)
+np.random.seed(42)
+# Cluster 1: small flowers
+cluster1 = np.random.randn(50, 4) * 0.3 + [4.5, 3.0, 1.5, 0.2]
+# Cluster 2: medium flowers
+cluster2 = np.random.randn(50, 4) * 0.4 + [5.9, 2.8, 4.3, 1.3]
+# Cluster 3: large flowers
+cluster3 = np.random.randn(50, 4) * 0.5 + [6.7, 3.1, 5.6, 2.4]
+
+data_4d = np.vstack([cluster1, cluster2, cluster3])
+labels = np.array([0]*50 + [1]*50 + [2]*50)
+colors = ['#3b82f6', '#ef4444', '#10b981']
+
+# Reduce to 2D with PCA
+pca = PCA(n_components=2)
+data_2d = pca.fit_transform(data_4d)
+
+# Visualize
+fig, ax = plt.subplots(figsize=(8, 6), dpi=120)
+for i in range(3):
+    mask = labels == i
+    ax.scatter(data_2d[mask, 0], data_2d[mask, 1],
+              c=colors[i], label=f'Species {i+1}',
+              alpha=0.6, s=60, edgecolors='white', linewidth=0.5)
+
+ax.set_xlabel(f'PC1 ({pca.explained_variance_ratio_[0]*100:.1f}% variance)', fontsize=11)
+ax.set_ylabel(f'PC2 ({pca.explained_variance_ratio_[1]*100:.1f}% variance)', fontsize=11)
+ax.set_title('4D Flower Data Reduced to 2D with PCA', fontsize=12, fontweight='bold')
+ax.legend(fontsize=10)
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+
+print(f"Original data shape: {data_4d.shape}")
+print(f"Reduced data shape: {data_2d.shape}")
+print(f"Total variance explained: {pca.explained_variance_ratio_.sum()*100:.2f}%")</code></pre>
+                </div>
+                <div class="code-controls">
+                    <button class="run-code" onclick="runCode('code-visualization', 'output-visualization')">Run Code</button>
+                    <button class="secondary" onclick="resetCode('code-visualization')">Reset</button>
+                </div>
+                <div class="code-output empty" id="output-visualization">
+                    Click "Run Code" to execute
+                </div>
+            </div>
+
+            <p>
+                We've taken 4D data (impossible to visualize directly) and projected it into 2D while keeping most of the information.
+                Notice how the three clusters are still clearly separated!
+            </p>
+        </section>
+
+        <!-- ===== INTERACTIVE PLAYGROUND ===== -->
+        <section id="playground" class="content-section">
+            <h2>Interactive Playground</h2>
+
+            <p>
+                Now it's your turn to experiment! Here's a blank canvas with all the libraries loaded.
+                Try creating your own datasets, applying PCA/SVD, and visualizing the results.
+            </p>
+
+            <div class="intro-box">
+                <p><strong>Challenge Ideas:</strong></p>
+                <ul>
+                    <li>Create a 3D dataset and reduce it to 2D with PCA</li>
+                    <li>Generate noisy data and see if PCA can denoise it</li>
+                    <li>Compare PCA with different numbers of components</li>
+                    <li>Apply SVD to a custom matrix and visualize the decomposition</li>
+                    <li>Create data where PCA doesn't work well (hint: think circular or nonlinear patterns)</li>
+                </ul>
+            </div>
+
+            <div class="code-block-container">
+                <div class="code-editor">
+                    <pre><code class="language-python" contenteditable="true" id="code-playground">import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
+# Your code here!
+# Try experimenting with PCA and SVD
+
+# Example starter code:
+np.random.seed(123)
+data = np.random.randn(100, 2)
+
+plt.figure(figsize=(7, 5), dpi=120)
+plt.scatter(data[:, 0], data[:, 1], alpha=0.6, s=50)
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.title('Your Custom Visualization')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()</code></pre>
+                </div>
+                <div class="code-controls">
+                    <button class="run-code" onclick="runCode('code-playground', 'output-playground')">Run Code</button>
+                    <button class="secondary" onclick="resetCode('code-playground')">Reset</button>
+                </div>
+                <div class="code-output empty" id="output-playground">
+                    Click "Run Code" to execute
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SUMMARY ===== -->
+        <section id="summary" class="content-section">
+            <h2>Summary</h2>
+
+            <p>
+                Congratulations! You've learned about two powerful techniques for understanding high-dimensional data:
+            </p>
+
+            <div class="intro-box">
+                <p><strong>Principal Component Analysis (PCA):</strong></p>
+                <ul>
+                    <li>Finds directions of maximum variance in data</li>
+                    <li>Reduces dimensionality while preserving information</li>
+                    <li>Great for visualization and noise reduction</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>Singular Value Decomposition (SVD):</strong></p>
+                <ul>
+                    <li>Decomposes any matrix into rotation-scaling-rotation</li>
+                    <li>More general than PCA</li>
+                    <li>Used in PCA, image compression, recommender systems, and more</li>
+                </ul>
+
+                <p style="margin-top: 1rem;"><strong>The Connection:</strong></p>
+                <ul>
+                    <li>PCA uses SVD under the hood!</li>
+                    <li>SVD on centered data gives PCA's principal components</li>
+                    <li>Both reveal the fundamental structure of data</li>
+                </ul>
+            </div>
+
+            <h3>Where to Go Next</h3>
+            <ul>
+                <li><strong>Practice:</strong> Try PCA/SVD on real datasets (sklearn has many built-in datasets)</li>
+                <li><strong>Math deeper:</strong> Study eigendecomposition and linear algebra</li>
+                <li><strong>Applications:</strong> Explore image processing, natural language processing, and collaborative filtering</li>
+                <li><strong>Extensions:</strong> Learn about kernel PCA, sparse PCA, and other variants</li>
+            </ul>
+
+            <p style="margin-top: 2rem;">
+                <strong>Keep exploring, and remember:</strong> The best way to understand these concepts is to play with them.
+                Use the interactive playground above to experiment!
+            </p>
+        </section>
+    </main>
+
+    <!-- Load external scripts -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+
+    <script>
+        // ===== GLOBAL STATE =====
+        let pyodideInstance = null;
+        let pyodideReady = false;
+        const originalCode = {};
+        const animations = {
+            pca: {
+                steps: [],
+                currentStep: 0
+            }
+        };
+
+        // Store original code for reset functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('code[contenteditable="true"]').forEach(code => {
+                originalCode[code.id] = code.textContent;
+            });
+        });
+
+        // ===== PYODIDE INITIALIZATION =====
+        async function initPyodide() {
+            const statusEl = document.getElementById('status-text');
+            const statusContainer = document.getElementById('pyodide-status');
+
+            try {
+                statusEl.textContent = 'Loading Python runtime...';
+                pyodideInstance = await loadPyodide({
+                    indexURL: 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/'
+                });
+
+                statusEl.textContent = 'Installing scientific packages...';
+                await pyodideInstance.loadPackage(['numpy', 'matplotlib', 'scikit-learn']);
+
+                statusEl.textContent = 'Setting up visualization backend...';
+                await pyodideInstance.runPythonAsync(`
+                    import matplotlib
+                    matplotlib.use('Agg')
+                    import matplotlib.pyplot as plt
+                    import numpy as np
+                    from sklearn.decomposition import PCA
+                    from io import BytesIO
+                    import base64
+                    import json
+
+                    def fig_to_base64():
+                        buf = BytesIO()
+                        plt.savefig(buf, format='png', dpi=120, bbox_inches='tight')
+                        buf.seek(0)
+                        img_b64 = base64.b64encode(buf.read()).decode('utf-8')
+                        plt.close()
+                        return img_b64
+
+                    print("✓ All packages loaded successfully!")
+                `);
+
+                pyodideReady = true;
+                statusEl.textContent = '✓ Ready! Try running the code examples.';
+                statusContainer.classList.add('ready');
+
+                // Enable all run buttons
+                document.querySelectorAll('.run-code').forEach(btn => {
+                    btn.disabled = false;
+                });
+
+                // Render math after KaTeX is loaded
+                renderMath();
+
+            } catch (error) {
+                console.error('Pyodide initialization failed:', error);
+                statusEl.textContent = '✗ Failed to initialize. Please refresh the page.';
+                statusContainer.style.borderColor = 'var(--error)';
+                statusContainer.style.color = 'var(--error)';
+            }
+        }
+
+        // ===== MATH RENDERING =====
+        function renderMath() {
+            if (typeof renderMathInElement !== 'undefined') {
+                renderMathInElement(document.body, {
+                    delimiters: [
+                        {left: "$$", right: "$$", display: true},
+                        {left: "$", right: "$", display: false},
+                        {left: "\\[", right: "\\]", display: true},
+                        {left: "\\(", right: "\\)", display: false}
+                    ],
+                    throwOnError: false
+                });
+            } else {
+                // Retry after a short delay if not loaded yet
+                setTimeout(renderMath, 100);
+            }
+        }
+
+        // ===== CODE EXECUTION =====
+        async function runCode(codeId, outputId) {
+            if (!pyodideReady) {
+                showOutput(outputId, 'error', 'Python environment is still loading. Please wait...');
+                return;
+            }
+
+            const codeElement = document.getElementById(codeId);
+            const outputElement = document.getElementById(outputId);
+            const code = codeElement.textContent;
+
+            showOutput(outputId, 'loading', 'Running Python code...');
+
+            try {
+                // Wrap code to capture matplotlib output
+                const wrappedCode = `
+import io
+import sys
+
+# Capture stdout
+old_stdout = sys.stdout
+sys.stdout = buffer = io.StringIO()
+
+${code}
+
+# Get any text output
+text_output = buffer.getvalue()
+sys.stdout = old_stdout
+
+# Try to get plot
+try:
+    img_b64 = fig_to_base64()
+    result = {'type': 'image', 'data': img_b64, 'text': text_output}
+except:
+    result = {'type': 'text', 'data': text_output}
+
+import json
+json.dumps(result)
+`;
+
+                const resultJson = await pyodideInstance.runPythonAsync(wrappedCode);
+                const result = JSON.parse(resultJson);
+
+                if (result.type === 'image') {
+                    let html = `<img src="data:image/png;base64,${result.data}" alt="Plot output">`;
+                    if (result.text) {
+                        html += `<div class="status-message" style="margin-top: 1rem; background: #f8f9fa; color: #1e1e1e; padding: 0.5rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap;">${result.text}</div>`;
+                    }
+                    outputElement.innerHTML = html;
+                    outputElement.className = 'code-output';
+                } else if (result.data) {
+                    showOutput(outputId, 'text', result.data);
+                } else {
+                    showOutput(outputId, 'success', '✓ Code executed successfully (no output)');
+                }
+
+            } catch (error) {
+                showOutput(outputId, 'error', error.message);
+            }
+        }
+
+        function showOutput(outputId, type, content) {
+            const outputElement = document.getElementById(outputId);
+            outputElement.className = 'code-output';
+
+            if (type === 'loading') {
+                outputElement.innerHTML = `<div class="status-message status-loading">${content}</div>`;
+            } else if (type === 'success') {
+                outputElement.innerHTML = `<div class="status-message status-success">${content}</div>`;
+            } else if (type === 'error') {
+                outputElement.innerHTML = `<div class="status-message status-error">${content}</div>`;
+            } else if (type === 'text') {
+                outputElement.innerHTML = `<div class="status-message" style="background: #f8f9fa; color: #1e1e1e; padding: 1rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap;">${content}</div>`;
+            }
+        }
+
+        function resetCode(codeId) {
+            const codeElement = document.getElementById(codeId);
+            if (originalCode[codeId]) {
+                codeElement.textContent = originalCode[codeId];
+                // Re-highlight with Prism if available
+                if (typeof Prism !== 'undefined') {
+                    Prism.highlightElement(codeElement);
+                }
+            }
+        }
+
+        // ===== ANIMATIONS =====
+        async function generatePCASteps() {
+            if (!pyodideReady) {
+                alert('Python environment is still loading. Please wait...');
+                return;
+            }
+
+            const displayElement = document.getElementById('pca-animation-display');
+            const descElement = document.getElementById('pca-step-description');
+
+            displayElement.innerHTML = '<div class="status-message status-loading">Generating animation steps...</div>';
+
+            try {
+                const code = `
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+import json
+
+np.random.seed(42)
+x = np.random.randn(100)
+y = 2 * x + np.random.randn(100) * 0.5
+data = np.column_stack([x, y])
+
+steps = []
+
+# Step 1: Original data
+fig, ax = plt.subplots(figsize=(6, 4.5), dpi=120)
+ax.scatter(data[:, 0], data[:, 1], alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+ax.set_xlabel('Feature 1', fontsize=10)
+ax.set_ylabel('Feature 2', fontsize=10)
+ax.set_title('Step 1: Original Data', fontsize=11, fontweight='bold')
+ax.grid(True, alpha=0.3)
+steps.append({
+    'image': fig_to_base64(),
+    'description': 'We start with our 2D dataset. Each point represents an observation with two features.'
+})
+
+# Step 2: Show mean
+mean = np.mean(data, axis=0)
+fig, ax = plt.subplots(figsize=(6, 4.5), dpi=120)
+ax.scatter(data[:, 0], data[:, 1], alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+ax.scatter(mean[0], mean[1], c='yellow', s=300, marker='*', edgecolors='black', linewidth=2, zorder=5, label='Mean')
+ax.set_xlabel('Feature 1', fontsize=10)
+ax.set_ylabel('Feature 2', fontsize=10)
+ax.set_title('Step 2: Find the Mean', fontsize=11, fontweight='bold')
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+steps.append({
+    'image': fig_to_base64(),
+    'description': 'Calculate the mean (average) of all data points. This will be our new origin.'
+})
+
+# Step 3: Center the data
+centered = data - mean
+fig, ax = plt.subplots(figsize=(6, 4.5), dpi=120)
+ax.scatter(centered[:, 0], centered[:, 1], alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+ax.scatter(0, 0, c='yellow', s=300, marker='*', edgecolors='black', linewidth=2, zorder=5, label='Origin (mean)')
+ax.axhline(0, color='gray', linewidth=1, linestyle='--', alpha=0.5)
+ax.axvline(0, color='gray', linewidth=1, linestyle='--', alpha=0.5)
+ax.set_xlabel('Feature 1 (centered)', fontsize=10)
+ax.set_ylabel('Feature 2 (centered)', fontsize=10)
+ax.set_title('Step 3: Center the Data', fontsize=11, fontweight='bold')
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+steps.append({
+    'image': fig_to_base64(),
+    'description': 'Subtract the mean from all points. Now the data is centered at the origin (0, 0).'
+})
+
+# Step 4: Find principal components
+pca = PCA(n_components=2)
+pca.fit(centered)
+fig, ax = plt.subplots(figsize=(6, 4.5), dpi=120)
+ax.scatter(centered[:, 0], centered[:, 1], alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+colors = ['#ef4444', '#10b981']
+for i, (comp, var) in enumerate(zip(pca.components_, pca.explained_variance_)):
+    direction = comp * 3 * np.sqrt(var)
+    ax.arrow(0, 0, direction[0], direction[1],
+             head_width=0.25, head_length=0.25, fc=colors[i], ec=colors[i],
+             linewidth=3, label=f'PC{i+1} ({var/pca.explained_variance_.sum()*100:.0f}%)')
+ax.axhline(0, color='gray', linewidth=1, linestyle='--', alpha=0.5)
+ax.axvline(0, color='gray', linewidth=1, linestyle='--', alpha=0.5)
+ax.set_xlabel('Feature 1 (centered)', fontsize=10)
+ax.set_ylabel('Feature 2 (centered)', fontsize=10)
+ax.set_title('Step 4: Find Principal Components', fontsize=11, fontweight='bold')
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+steps.append({
+    'image': fig_to_base64(),
+    'description': 'Compute principal components: directions where data varies most. PC1 (red) captures the most variance, PC2 (green) is perpendicular to PC1.'
+})
+
+# Step 5: Project onto PC1
+transformed = pca.transform(centered)
+fig, ax = plt.subplots(figsize=(6, 4.5), dpi=120)
+ax.scatter(centered[:, 0], centered[:, 1], alpha=0.3, s=40, c='lightgray', edgecolors='none', label='Original data')
+ax.scatter(transformed[:, 0], np.zeros_like(transformed[:, 0]), alpha=0.7, s=50, c='#ef4444', edgecolors='white', linewidth=0.5, label='Projected onto PC1')
+direction = pca.components_[0] * 3 * np.sqrt(pca.explained_variance_[0])
+ax.arrow(0, 0, direction[0], direction[1],
+         head_width=0.25, head_length=0.25, fc='#ef4444', ec='#ef4444',
+         linewidth=3, alpha=0.5)
+ax.axhline(0, color='gray', linewidth=1, linestyle='--', alpha=0.5)
+ax.axvline(0, color='gray', linewidth=1, linestyle='--', alpha=0.5)
+ax.set_xlabel('PC1 (Principal Component 1)', fontsize=10)
+ax.set_ylabel('PC2 (Principal Component 2)', fontsize=10)
+ax.set_title('Step 5: Project Data onto PC1', fontsize=11, fontweight='bold')
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+steps.append({
+    'image': fig_to_base64(),
+    'description': 'Project all data points onto the first principal component. This reduces dimensionality from 2D to 1D while keeping ~84% of the information!'
+})
+
+json.dumps(steps)
+`;
+
+                const stepsJson = await pyodideInstance.runPythonAsync(code);
+                animations.pca.steps = JSON.parse(stepsJson);
+                animations.pca.currentStep = 0;
+
+                document.getElementById('pca-total-steps').textContent = animations.pca.steps.length;
+                renderAnimationStep('pca');
+
+            } catch (error) {
+                displayElement.innerHTML = `<div class="status-message status-error">Error generating animation: ${error.message}</div>`;
+            }
+        }
+
+        function renderAnimationStep(animationName) {
+            const anim = animations[animationName];
+            if (!anim.steps || anim.steps.length === 0) return;
+
+            const step = anim.steps[anim.currentStep];
+            const displayElement = document.getElementById(`${animationName}-animation-display`);
+            const descElement = document.getElementById(`${animationName}-step-description`);
+            const currentStepElement = document.getElementById(`${animationName}-current-step`);
+
+            displayElement.innerHTML = `<img src="data:image/png;base64,${step.image}" alt="Animation step ${anim.currentStep + 1}">`;
+            descElement.textContent = step.description;
+            descElement.style.display = 'block';
+            currentStepElement.textContent = anim.currentStep + 1;
+        }
+
+        function nextStep(animationName) {
+            const anim = animations[animationName];
+            if (!anim.steps || anim.steps.length === 0) {
+                alert('Please generate the animation first!');
+                return;
+            }
+
+            if (anim.currentStep < anim.steps.length - 1) {
+                anim.currentStep++;
+                renderAnimationStep(animationName);
+            }
+        }
+
+        function prevStep(animationName) {
+            const anim = animations[animationName];
+            if (!anim.steps || anim.steps.length === 0) {
+                alert('Please generate the animation first!');
+                return;
+            }
+
+            if (anim.currentStep > 0) {
+                anim.currentStep--;
+                renderAnimationStep(animationName);
+            }
+        }
+
+        // ===== DATASET SELECTOR =====
+        async function loadPCADataset() {
+            if (!pyodideReady) {
+                alert('Python environment is still loading. Please wait...');
+                return;
+            }
+
+            const datasetName = document.getElementById('pca-dataset').value;
+            const outputElement = document.getElementById('pca-dataset-output');
+
+            outputElement.innerHTML = '<div class="status-message status-loading">Loading dataset...</div>';
+
+            try {
+                const code = `
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
+np.random.seed(42)
+
+# Generate dataset based on selection
+if '${datasetName}' == 'linear':
+    x = np.random.randn(100)
+    y = 2 * x + np.random.randn(100) * 0.5
+    title = 'Linear Correlation'
+elif '${datasetName}' == 'circular':
+    theta = np.random.rand(100) * 2 * np.pi
+    r = 3 + np.random.randn(100) * 0.3
+    x = r * np.cos(theta)
+    y = r * np.sin(theta)
+    title = 'Circular Pattern'
+elif '${datasetName}' == 'diagonal':
+    x = np.random.randn(100)
+    y = x + np.random.randn(100) * 0.3
+    title = 'Diagonal Spread'
+else:  # random
+    x = np.random.randn(100)
+    y = np.random.randn(100)
+    title = 'Random Cloud'
+
+data = np.column_stack([x, y])
+
+# Perform PCA
+pca = PCA(n_components=2)
+pca.fit(data)
+
+# Visualize
+fig, ax = plt.subplots(figsize=(7, 5), dpi=120)
+ax.scatter(data[:, 0], data[:, 1], alpha=0.6, s=50, c='#3b82f6', edgecolors='white', linewidth=0.5)
+
+mean = np.mean(data, axis=0)
+colors = ['#ef4444', '#10b981']
+for i, (comp, var) in enumerate(zip(pca.components_, pca.explained_variance_)):
+    direction = comp * 2 * np.sqrt(var)
+    ax.arrow(mean[0], mean[1], direction[0], direction[1],
+             head_width=0.2, head_length=0.2, fc=colors[i], ec=colors[i],
+             linewidth=3, label=f'PC{i+1} ({var/pca.explained_variance_.sum()*100:.0f}%)')
+
+ax.set_xlabel('Feature 1', fontsize=11)
+ax.set_ylabel('Feature 2', fontsize=11)
+ax.set_title(f'{title} - PCA Components', fontsize=12, fontweight='bold')
+ax.legend(fontsize=9)
+ax.grid(True, alpha=0.3)
+ax.axis('equal')
+plt.tight_layout()
+
+fig_to_base64()
+`;
+
+                const imgBase64 = await pyodideInstance.runPythonAsync(code);
+                outputElement.innerHTML = `<img src="data:image/png;base64,${imgBase64}" alt="PCA dataset">`;
+                outputElement.className = 'code-output';
+
+            } catch (error) {
+                outputElement.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // ===== IMAGE COMPRESSION =====
+        let compressionComponents = 10;
+
+        function updateCompressionValue(value) {
+            compressionComponents = parseInt(value);
+            document.getElementById('compression-value').textContent = value;
+        }
+
+        async function runImageCompression() {
+            if (!pyodideReady) {
+                alert('Python environment is still loading. Please wait...');
+                return;
+            }
+
+            const outputElement = document.getElementById('output-compression');
+            outputElement.innerHTML = '<div class="status-message status-loading">Compressing image with SVD...</div>';
+
+            try {
+                const code = `
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create a simple synthetic "image" (could be a gradient, pattern, etc.)
+np.random.seed(42)
+# Create a simple pattern: combination of gradients and structure
+x = np.linspace(0, 10, 100)
+y = np.linspace(0, 10, 100)
+X, Y = np.meshgrid(x, y)
+image = np.sin(X) * np.cos(Y) + np.random.randn(100, 100) * 0.1
+
+# Apply SVD
+U, S, Vt = np.linalg.svd(image, full_matrices=False)
+
+# Reconstruct with only top k components
+k = ${compressionComponents}
+compressed = U[:, :k] @ np.diag(S[:k]) @ Vt[:k, :]
+
+# Calculate compression ratio
+original_size = image.size
+compressed_size = U[:, :k].size + k + Vt[:k, :].size
+compression_ratio = original_size / compressed_size
+
+# Visualize
+fig, axes = plt.subplots(1, 3, figsize=(12, 4), dpi=120)
+
+axes[0].imshow(image, cmap='viridis')
+axes[0].set_title('Original Image', fontweight='bold', fontsize=10)
+axes[0].axis('off')
+
+axes[1].imshow(compressed, cmap='viridis')
+axes[1].set_title(f'Compressed (k={k} components)', fontweight='bold', fontsize=10)
+axes[1].axis('off')
+
+axes[2].plot(S[:50], 'o-', linewidth=2, markersize=4, color='#3b82f6')
+axes[2].axvline(k, color='#ef4444', linestyle='--', linewidth=2, label=f'k={k}')
+axes[2].set_xlabel('Component', fontsize=10)
+axes[2].set_ylabel('Singular Value', fontsize=10)
+axes[2].set_title('Singular Values', fontweight='bold', fontsize=10)
+axes[2].legend(fontsize=9)
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout()
+
+error = np.linalg.norm(image - compressed) / np.linalg.norm(image) * 100
+print(f"Compression ratio: {compression_ratio:.2f}x")
+print(f"Relative error: {error:.2f}%")
+print(f"Energy preserved: {(S[:k]**2).sum() / (S**2).sum() * 100:.2f}%")
+
+fig_to_base64()
+`;
+
+                const imgBase64 = await pyodideInstance.runPythonAsync(code);
+
+                // Get the printed output
+                const textOutput = pyodideInstance.runPython(`
+import io
+import sys
+old_stdout = sys.stdout
+sys.stdout = buffer = io.StringIO()
+
+${code.split('fig_to_base64()')[0]}
+
+text_output = buffer.getvalue()
+sys.stdout = old_stdout
+text_output
+`);
+
+                let html = `<img src="data:image/png;base64,${imgBase64}" alt="Image compression">`;
+                if (textOutput) {
+                    html += `<div class="status-message" style="margin-top: 1rem; background: #f8f9fa; color: #1e1e1e; padding: 0.75rem; border-radius: 4px; font-family: monospace; font-size: 0.85rem;">${textOutput}</div>`;
+                }
+
+                outputElement.innerHTML = html;
+                outputElement.className = 'code-output';
+
+            } catch (error) {
+                outputElement.innerHTML = `<div class="status-message status-error">Error: ${error.message}</div>`;
+            }
+        }
+
+        // ===== INITIALIZATION =====
+        window.addEventListener('DOMContentLoaded', function() {
+            // Disable run buttons initially
+            document.querySelectorAll('.run-code').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            // Start Pyodide initialization
+            initPyodide();
+
+            // Syntax highlighting for code blocks
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
+    </script>
+</body>
+</html>
